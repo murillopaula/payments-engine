@@ -11,7 +11,7 @@ pub enum TransactionType {
     Chargeback,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct InputRecord {
     #[serde(rename = "type")]
     pub record_type: TransactionType,
@@ -22,7 +22,7 @@ pub struct InputRecord {
     pub amount: Option<Decimal>,
 }
 
-#[derive(Debug, Serialize, PartialEq, Clone)] // Added Clone here
+#[derive(Debug, Serialize, PartialEq, Clone)]
 pub struct OutputRecord {
     #[serde(rename = "client")]
     pub client_id: u16,
@@ -31,7 +31,6 @@ pub struct OutputRecord {
     pub total: Decimal,
     pub locked: bool,
 }
-
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct Account {
@@ -56,7 +55,6 @@ impl Account {
     }
 
     /// Processes a deposit into the account.
-    /// FIX: Removed the `!self.locked` check to allow deposits to locked accounts.
     pub fn deposit(&mut self, amount: Decimal) {
         self.available += amount;
     }
@@ -96,11 +94,9 @@ impl Account {
 
     /// Processes a chargeback, removing held funds and locking the account.
     pub fn chargeback(&mut self, amount: Decimal) -> bool {
-        // FIX: Allow chargeback even if locked, as it's a final action.
-        // It primarily affects held funds and ensures the lock.
         if self.held >= amount {
             self.held -= amount;
-            self.locked = true; // Ensure it's locked.
+            self.locked = true;
             true
         } else {
             false
@@ -110,7 +106,7 @@ impl Account {
     pub fn to_output_record(&self) -> OutputRecord {
         OutputRecord {
             client_id: self.client_id,
-            available: self.available, // Keep raw decimals here
+            available: self.available,
             held: self.held,
             total: self.total(),
             locked: self.locked,
@@ -122,7 +118,6 @@ impl Account {
 pub enum TransactionState {
     Normal,
     Disputed,
-    ChargedBack,
 }
 
 #[derive(Debug, Clone, Copy)]

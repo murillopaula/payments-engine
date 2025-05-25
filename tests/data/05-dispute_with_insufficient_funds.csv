@@ -1,0 +1,5 @@
+type,client,tx,amount
+deposit,65535,4294967295,1.0
+withdrawal,65535,1,0.5
+dispute,65535,4294967295,
+chargeback,65535,4294967295,
